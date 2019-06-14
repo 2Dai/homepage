@@ -1,0 +1,56 @@
+baseurl             = "https://2dai.github.io/"
+builddrafts         = false
+canonifyurls        = true
+contentdir          = "content"
+languageCode        = "en-US"
+DefaultContentLanguage = "fr"
+layoutdir           = "layouts"
+publishdir          = "public"
+theme               = "cocoa"
+author              = "Dylan Iffrig"
+title               = "Dylan Iffrig"
+pygmentsuseclasses  = true
+pluralizelisttitles = false
+googleAnalytics     = "UA-123-45"
+
+[permalinks]
+blog  = "blog/:slug/"
+
+[[menu.main]]
+name                   = "Blog"
+weight                 = -120
+identifier             = "blog"
+url                    = "/blog/"
+
+[[menu.main]]
+name                   = "About"
+weight                 = -110
+identifier             = "about"
+url                    = "/about/"
+
+[[menu.main]]
+name                   = "Projects"
+weight                 = -100
+identifier             = "projects"
+url                    = "/projects/"
+
+[params]
+avatar              = "img/logo.png"
+latestpostscount       = 5                             # how many posts to display on the home page
+i18n_flags             = false                         # whether to display small country flags for available translation
+author                 = "Dylan Iffrig"
+#cachebuster            = true                          # add the current unix timestamp in query string for cache busting css assets
+#description            = "Dylan Iffrig - Personnal homepage"
+#email                  = "you@example.space"
+extracssfiles          = [ "/css/override.css" ]       # In your `static` directory, add/remove files as necessary.
+faviconfile            = "img/faceicon.png"
+github                 = "//github.com/2dai"
+lang                   = "fr"
+linkedin               = "//linkedin.com/in/dylan-iffrig"
+noshowreadtime         = false                         # if true, don't show "<x> minutes read" in posts
+selfintro              = ""                            # appears in the site header when set to a non-empty string
+twitter                = "//twitter.com/mabenz68"
+
+highlightjs            = true
+# highlightjslanguages = ["go"]                        # additional languages not included in the "common" set
+# highlightjsStyle     = "darcula"
