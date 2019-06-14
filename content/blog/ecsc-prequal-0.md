@@ -26,7 +26,7 @@ J'ai du rédiger la solution de quelques épreuves. J'ai essayé de diversifier 
 - [(crypto) 2tp](#2tp)
 - [(crypto) CQFD](#cqfd)
 - [(forensic) Exfiltration](#exfiltration)
-- [(forensic/crypto)CryptoDIY](#crypodiy)
+- [(forensic/crypto)CryptoDIY](#cryptodiy)
 - [(pwn) Armory](#armory)
 - [(pwn) Armigo](#armigo)
 - [(web) Ceci n'est pas une pipe](#ceci-n-est-pas-une-pipe)
@@ -83,7 +83,7 @@ print(flag)
 
 La première partie est une épreuve de reconnaissance, il faut isoler ce qui nous intéresse dans cette capture. On se trouve dans la catégorie cryptographie on sait donc déjà un peu vers ou regarder.
 
-Dans la capture réseau on remarque 2 certificats autosignés pour les domaines __iluvprimes.fr__ et __cryptoftw.fr__. On a également une communication avec le vrai certificat de l’ANSSI. On regarde un peu les paramètres utilisés dans les échanges TLS. En regardant chaque certificat individuellement rien ne me saute à l’oeil, les paramètres sont bon (RSA-2048 et les modules ont l’air normaux). Pour dechiffrer le flux, il nous faudra d’une manière ou d'une autre récuperer la clé privée. Ici je ne voyais pas d’autres méthodes que factoriser le module de la clé publique. Le problème est qu'une clé 2048 bits ne se factorise pas directement en un temps résonnable. 
+Dans la capture réseau on remarque 2 certificats autosignés pour les domaines __iluvprimes.fr__ et __cryptoftw.fr__. On a également une communication avec le vrai certificat de l’ANSSI. On regarde un peu les paramètres utilisés dans les échanges TLS. En regardant chaque certificat individuellement rien ne me saute à l’oeil, les paramètres sont bon (RSA-2048 et les modules ont l’air normaux). Pour dechiffrer le flux, il nous faudra d’une manière ou d'une autre récuperer la clé privée. Ici je ne voyais pas d’autres méthodes que factoriser le module de la clé publique. Le problème est qu'une clé 2048 bits ne se factorise pas directement en un temps raisonnable. 
 
 On peut donc essayer de trouver des facteurs communs avec d’autres certificats (en pratique des millions qu'on pourrait trouver sur internet), mais ici commençons déjà avec nos 2 certificats suspects présents dans la capture. On copie les modules des 2 certificats suspects, notons les *N1* et *N2*, puis on cherche le plus grand diviseur commun: *pgcd(N1,N2)*.
 
