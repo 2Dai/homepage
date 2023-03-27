@@ -13,6 +13,9 @@ pygmentsuseclasses  = true
 pluralizelisttitles = false
 googleAnalytics     = "UA-123-45"
 
+[markup.goldmark.renderer]
+unsafe= true
+
 [permalinks]
 blog  = "blog/:slug/"
 
