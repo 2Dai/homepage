@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Dylan Iffrig</title>
+    <link>https://2dai.github.io/</link>
+    <description>Recent content on Dylan Iffrig</description>
+    <generator>Hugo</generator>
+    <language>en-US</language>
+    <lastBuildDate>Wed, 28 Feb 2024 10:30:00 +0100</lastBuildDate>
+    <atom:link href="https://2dai.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>[EN] - CryptoNotes: An Android Memory Corruption Challenge</title>
+      <link>https://2dai.github.io/blog/en-cryptonotes-an-android-memory-corruption-challenge/</link>
+      <pubDate>Wed, 28 Feb 2024 10:30:00 +0100</pubDate>
+      <guid>https://2dai.github.io/blog/en-cryptonotes-an-android-memory-corruption-challenge/</guid>
+      <description>&lt;p&gt;For Insomni&amp;rsquo;hack Teaser 2024, I designed CryptoNotes, a challenging Android pwn challenge that combined native memory corruption with Android&amp;rsquo;s Intent-based IPC mechanisms. The goal was to create a realistic mobile exploitation scenario that required players to chain multiple exploitation techniques across the Android application framework and native code layers.&lt;/p&gt;&#xA;&lt;h2 id=&#34;challenge-concept&#34;&gt;Challenge Concept&lt;/h2&gt;&#xA;&lt;p&gt;The concept was basic:&lt;/p&gt;&#xA;&lt;p&gt;&lt;em&gt;A security researcher stored a sensitive note in a new note-taking application&lt;/em&gt;.&lt;/p&gt;&#xA;&lt;p&gt;As an attacker, you can convince the researcher to install your malicious application and start its main activity. The task was to find a way to leak the notes and capture the flag.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>[EN] - Attacking Android Antivirus Applications</title>
+      <link>https://2dai.github.io/blog/en-attacking-android-antivirus-applications/</link>
+      <pubDate>Wed, 29 Mar 2023 04:07:25 -0600</pubDate>
+      <guid>https://2dai.github.io/blog/en-attacking-android-antivirus-applications/</guid>
+      <description>&lt;p&gt;Although the usefulness of security tools such as Antivirus, VPN and EDR is now indisputable in business circles, these solutions often need a lot of privileges and permissions to work properly, also making them an excellent target for an attacker. The presence of a bug in one of these types of solutions could allow a malware to elevate its privileges and cause more damage to the organization.&lt;/p&gt;&#xA;&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;&#xA;&lt;p&gt;Recent research at SCRT has been greatly motivated by the paradoxical idea of attacking security solutions. Could these solutions that are supposed to protect the system and block attackers be abused by an attacker to gain even more privileges on the system ?&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>[EN] - Insomnihack 23 - Andropwn writeup</title>
+      <link>https://2dai.github.io/blog/en-insomnihack-23-andropwn-writeup/</link>
+      <pubDate>Mon, 27 Mar 2023 04:05:25 -0600</pubDate>
+      <guid>https://2dai.github.io/blog/en-insomnihack-23-andropwn-writeup/</guid>
+      <description>&lt;p&gt;This challenge is a vulnerable android application. The attacker needs to exploit IPCs and Permissions issues to compromise the application and leak the flag.&lt;/p&gt;&#xA;&lt;h3 id=&#34;description-of-the-challenge&#34;&gt;Description of the challenge&lt;/h3&gt;&#xA;&lt;p&gt;Our administrator saved a sensitive note in his &lt;a href=&#34;https://2dai.github.io/files/app.apk&#34;&gt;note-taking application&lt;/a&gt;. I convinced him to install your mobile application and start the main activity on his device, please find a way to leak the notes.&lt;/p&gt;&#xA;&lt;p&gt;System running: &lt;code&gt;system-images;android-30;google_apis_playstore;x86_64&lt;/code&gt;&lt;/p&gt;&#xA;&lt;h3 id=&#34;solution&#34;&gt;Solution&lt;/h3&gt;&#xA;&lt;p&gt;When we run the application in an Android Emulator, we can quickly see that the application is a basic Note application. A user can add and edit notes &lt;code&gt;¯\_(ツ)_/¯&lt;/code&gt;.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>[FR] - Présélection Française pour l&#39;ECSC 2019</title>
+      <link>https://2dai.github.io/blog/fr-pr%C3%A9s%C3%A9lection-fran%C3%A7aise-pour-lecsc-2019/</link>
+      <pubDate>Wed, 12 Jun 2019 04:05:25 -0600</pubDate>
+      <guid>https://2dai.github.io/blog/fr-pr%C3%A9s%C3%A9lection-fran%C3%A7aise-pour-lecsc-2019/</guid>
+      <description>&lt;p&gt;Le lundi 13 au mercredi 22 mai 2019 s&amp;rsquo;est déroulé les phase de présélection nationale pour l&amp;rsquo;European Cybersecurity challenge (ECSC). Près de 1 200 candidats se sont affronté pendant 1 semaine dans l&amp;rsquo;objectif de représenter la France pour la compétion européenne qui se déroulera à Bucarest.&lt;/p&gt;&#xA;&lt;blockquote&gt;&#xA;&lt;p&gt;Près d’une quarantaine d’épreuves ont été mises en ligne pendant dix jours afin de tester les candidat(e)s, mais aussi les curieux et les curieuses, sur des domaines variés : le web, la cryptographie, reverse, forensic, etc.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>colophon</title>
+      <link>https://2dai.github.io/about/colophon/</link>
+      <pubDate>Sat, 22 Aug 2015 06:28:26 -0700</pubDate>
+      <guid>https://2dai.github.io/about/colophon/</guid>
+      <description>&lt;p&gt;This website is a personal homepage.&lt;/p&gt;&#xA;&lt;p&gt;The site is built with &lt;a target=&#34;_blank&#34; rel=&#34;noopener&#34; href=&#34;//gohugo.io&#34;&gt;Hugo&lt;/a&gt;—a static site generator made with Go. The website &lt;a href=&#34;https://2dai.github.io/&#34;&gt;source code&lt;/a&gt; is available on GitHub. It uses the &lt;a target=&#34;_blank&#34; rel=&#34;noopener&#34; href=&#34;//github.com/nishanths/cocoa-hugo-theme&#34;&gt;cocoa&lt;/a&gt; theme. The posts are written in Markdown.&lt;/p&gt;&#xA;&lt;p&gt;The primary font face is Open Sans and the monospace font face is Ubuntu Mono. The social icons are from the Ionicons font set. CSS classes for code syntax highlighting are inserted during compile-time by Hugo using Pygments.&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

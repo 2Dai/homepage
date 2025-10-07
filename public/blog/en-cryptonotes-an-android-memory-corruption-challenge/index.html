@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="chrome=1">
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="no-referrer">
+<meta name="author" content="Dylan Iffrig">
+<meta name="description" content="For Insomni&rsquo;hack Teaser 2024, I designed CryptoNotes, a challenging Android pwn challenge that combined native memory corruption with Android&rsquo;s Intent-based IPC mechanisms. The goal was to create a realistic mobile exploitation scenario that required players to chain multiple exploitation techniques across the Android application framework and native code layers.
+Challenge Concept
+The concept was basic:
+A security researcher stored a sensitive note in a new note-taking application.
+As an attacker, you can convince the researcher to install your malicious application and start its main activity. The task was to find a way to leak the notes and capture the flag.">
+
+<meta property="og:url" content="https://2dai.github.io/blog/en-cryptonotes-an-android-memory-corruption-challenge/">
+  <meta property="og:site_name" content="Dylan Iffrig">
+  <meta property="og:title" content="[EN] - CryptoNotes: An Android Memory Corruption Challenge">
+  <meta property="og:description" content="For Insomni’hack Teaser 2024, I designed CryptoNotes, a challenging Android pwn challenge that combined native memory corruption with Android’s Intent-based IPC mechanisms. The goal was to create a realistic mobile exploitation scenario that required players to chain multiple exploitation techniques across the Android application framework and native code layers.
+Challenge Concept The concept was basic:
+A security researcher stored a sensitive note in a new note-taking application.
+As an attacker, you can convince the researcher to install your malicious application and start its main activity. The task was to find a way to leak the notes and capture the flag.">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="blog">
+    <meta property="article:published_time" content="2024-02-28T10:30:00+01:00">
+    <meta property="article:modified_time" content="2024-02-28T10:30:00+01:00">
+
+
+<title>
+
+
+     [EN] - CryptoNotes: An Android Memory Corruption Challenge 
+
+</title>
+<link rel="canonical" href="https://2dai.github.io/blog/en-cryptonotes-an-android-memory-corruption-challenge/">
+
+
+
+
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.11.0/styles/default.min.css">
+
+
+
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,700|Ubuntu+Mono:400,400i,700,700i|Raleway:500">
+
+
+
+    <link rel="stylesheet" href="https://2dai.github.io/css/reset.css">
+    <link rel="stylesheet" href="https://2dai.github.io/css/pygments.css">
+    <link rel="stylesheet" href="https://2dai.github.io/css/main.css">
+    
+        <link rel="stylesheet" href="https://2dai.github.io/css/override.css">
+    
+
+
+
+
+<link rel="shortcut icon"
+
+    href="https://2dai.github.io/img/faceicon.png"
+
+>
+
+
+
+
+
+
+
+
+</head>
+
+
+<body lang="fr">
+
+<section class="header">
+    <div class="container">
+        <div class="content">
+            
+                
+                
+                
+                
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                
+                <a href="https://2dai.github.io/"><img class="avatar" src="https://2dai.github.io/img/logo.png" srcset="https://2dai.github.io/img/logo.png 1x"></a>
+            
+	    <div class="navig-blog">
+		    <a href="https://2dai.github.io/"><div class="name">Dylan Iffrig</div></a>
+		    
+		    <nav>
+			<ul>
+			    
+				<li class="nav-blog"><a href="https://2dai.github.io/blog/"><span>Blog</span></a></li>
+			    
+				<li class="nav-about"><a href="https://2dai.github.io/about/"><span>About</span></a></li>
+			    
+				<li class="nav-projects"><a href="https://2dai.github.io/projects/"><span>Projects</span></a></li>
+			    
+			</ul>
+		    </nav>
+	    </div>
+        </div>
+    </div>
+</section>
+
+<section class="icons">
+    <div class="container">
+        <div class="content">
+        
+            <a href="//github.com/2dai" target="_blank" rel="noopener"><img class="icon" src="https://2dai.github.io/img/github.svg" alt="github" /></a>
+        
+
+        
+
+        
+            <a href="//twitter.com/mabenz68" target="_blank" rel="noopener"><img class="icon" src="https://2dai.github.io/img/twitter.svg" alt="twitter" /></a>
+        
+
+	
+
+        
+
+        
+
+        
+            <a href="//linkedin.com/in/dylan-iffrig" target="_blank" rel="noopener"><img class="icon" src="https://2dai.github.io/img/linkedin.svg" alt="linkedin" /></a>
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        </div>
+    </div>
+</section>
+
+
+<section class="main post non-narrow zero-top-spacing">
+    <div class="container">
+        <div class="content">
+            <div class="front-matter">
+                <div class="title-container">
+                    <div class="page-heading">
+
+    [EN] - CryptoNotes: An Android Memory Corruption Challenge
+
+</div>
+
+                    <div class="initials"><a href="https://2dai.github.io/"></a></div>
+                </div>
+                <div class="meta">
+                    
+                    <div class="date" title='Wed Feb 28 2024 10:30:00 CET'>Feb 28, 2024</div>
+                    
+                    
+		    <div class="reading-time"><div class="middot"></div>4 minutes de lecture</div>
+                    
+                </div>
+            </div>
+            <div class="markdown">
+                <p>For Insomni&rsquo;hack Teaser 2024, I designed CryptoNotes, a challenging Android pwn challenge that combined native memory corruption with Android&rsquo;s Intent-based IPC mechanisms. The goal was to create a realistic mobile exploitation scenario that required players to chain multiple exploitation techniques across the Android application framework and native code layers.</p>
+<h2 id="challenge-concept">Challenge Concept</h2>
+<p>The concept was basic:</p>
+<p><em>A security researcher stored a sensitive note in a new note-taking application</em>.</p>
+<p>As an attacker, you can convince the researcher to install your malicious application and start its main activity. The task was to find a way to leak the notes and capture the flag.</p>
+<p>The challenge ran on Android API 30</p>
+<ul>
+<li><code>system-images;android-30;google_apis_playstore;x86_64</code>)</li>
+</ul>
+<p>which provided a realistic modern Android environment with its associated security mitigations: <code>stack canaries</code>, <code>ASLR</code>, and the Android application sandbox.</p>
+<h2 id="technical-design-decisions">Technical Design Decisions</h2>
+<p>When designing this challenge, I wanted to create something that went beyond typical Android IPC vulnerabilities. Most Android CTF challenges focus solely on logic bugs in Java/Kotlin code, misconfigurations in permissions, path traversals in Content Providers, or Intent injection vulnerabilities.</p>
+<p>While these are valuable learning experiences, I wanted to push participants into something new which was based on native code exploitation through Android&rsquo;s IPC layer.</p>
+<h3 id="the-note-application">The Note Application</h3>
+<p>The target application was a simple note-keeping app with three modes:</p>
+<ol>
+<li>Store plaintext notes</li>
+<li>Encrypt notes with algorithm A1 (ALG1)</li>
+<li>Encrypt notes with algorithm A2 (ALG2)</li>
+</ol>
+<p>The flag was stored as an encrypted note using a custom native encryption algorithm implemented in C++. Notes were persisted in SharedPreferences, making them accessible only within the application&rsquo;s sandbox.</p>
+<h3 id="the-vulnerability-native-buffer-overflow">The Vulnerability: Native Buffer Overflow</h3>
+<p>The core vulnerability resided in the native library (<code>libins24.so</code>) within the <code>get_algo()</code> function. This function parsed a JSON configuration string containing an encryption algorithm specification and copied it to a fixed-size stack buffer without proper bounds checking:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c++" data-lang="c++"><span class="line"><span class="cl"><span class="kt">char</span> <span class="n">algo</span><span class="p">[</span><span class="mi">32</span><span class="p">];</span> <span class="c1">// Fixed size buffer
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kt">char</span> <span class="o">*</span><span class="n">json_algo</span> <span class="o">=</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span><span class="n">json_object_get_string</span><span class="p">(</span><span class="n">algo_obj</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="n">strcpy</span><span class="p">(</span><span class="n">algo</span><span class="p">,</span> <span class="n">json_algo</span><span class="p">);</span> <span class="c1">// Unsafe copy - buffer overflow!
+</span></span></span></code></pre></div><p>The function was protected by stack canaries (<code>-fstack-protector</code>), meaning any overflow would need to either leak or bypass the canary. Additionally, with ASLR enabled, attackers would need to defeat address space randomization to build a working ROP chain.</p>
+<h3 id="the-attack-surface-exported-activity">The Attack Surface: Exported Activity</h3>
+<p>The application exposed an exported Activity (<code>NoteAPIActivity</code>) that accepted serialized Intent extras. This Activity would deserialize a <code>CryptoConfig</code> object from the Intent and pass it directly to the native encryption function:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="nd">@Override</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kd">protected</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">onCreate</span><span class="p">(</span><span class="n">Bundle</span><span class="w"> </span><span class="n">savedInstanceState</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">super</span><span class="p">.</span><span class="na">onCreate</span><span class="p">(</span><span class="n">savedInstanceState</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">getIntent</span><span class="p">().</span><span class="na">hasExtra</span><span class="p">(</span><span class="s">&#34;config&#34;</span><span class="p">))</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">String</span><span class="w"> </span><span class="n">config</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getIntent</span><span class="p">().</span><span class="na">getStringExtra</span><span class="p">(</span><span class="s">&#34;config&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">CryptoConfig</span><span class="w"> </span><span class="n">cryptoconf</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">gson</span><span class="p">.</span><span class="na">fromJson</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="w"> </span><span class="n">CryptoConfig</span><span class="p">.</span><span class="na">class</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="kt">byte</span><span class="o">[]</span><span class="w"> </span><span class="n">algo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cryptoconf</span><span class="p">.</span><span class="na">getAlgo</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="c1">// Pass to native code...</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><p>This design choice was deliberate: it created a <strong>controlled entry point</strong> from another application&rsquo;s context into vulnerable native code. The attacker could craft malicious JSON payloads in their own application and deliver them via Intents to trigger the buffer overflow.</p>
+<h2 id="exploitation-chain">Exploitation Chain</h2>
+<p>The complete exploitation required players to:</p>
+<ol>
+<li><strong>Trigger the vulnerability</strong> - Craft a malicious Intent with oversized ALGO field to overflow the stack buffer</li>
+<li><strong>Leak the stack canary</strong> - Read the memory of your own &ldquo;malicious application&rdquo; to obtain the canary value (which is the same as victim app due to the Android fork and shared zygote initialization mechanism)</li>
+<li><strong>Defeat ASLR</strong> - Read <code>/proc/self/maps</code> to leak libc base address (which is again the same as victim app due to the Android fork and shared zygote initialization mechanism)</li>
+<li><strong>Build a ROP chain</strong> - Construct a ROP payload to execute arbitrary commands</li>
+<li><strong>Exfiltrate data</strong> - Use the <code>android.permission.INTERNET</code> permission to send SharedPreferences over the network</li>
+</ol>
+<p>What made this particularly interesting was that all information needed for exploitation (canary, libc addresses) was available through <code>/proc/self/*</code> files, which are readable from any application context. This mirrors real-world scenarios where attackers leverage information disclosure primitives available on the platform.</p>
+<h3 id="data-exfiltration-via-intents">Data Exfiltration via Intents</h3>
+<p>The final piece of the puzzle was data exfiltration. Since the victim application crashed after exploitation, traditional return-oriented programming couldn&rsquo;t pass data back through the Intent mechanism. Instead, players had to craft a ROP chain that:</p>
+<ol>
+<li>Read the SharedPreferences file from <code>/data/user/0/com.inso.ins24/shared_prefs/com.inso.ins24.mynotes.xml</code></li>
+<li>Used the victim&rsquo;s <code>android.permission.INTERNET</code> to send it over the network via <code>netcat</code></li>
+</ol>
+<p>This demonstrated a realistic privilege escalation scenario: a malicious application without network permissions exploiting a privileged application to perform actions it couldn&rsquo;t do directly.</p>
+<h2 id="intended-learning-outcomes">Intended Learning Outcomes</h2>
+<p>CryptoNotes was designed to teach several important concepts:</p>
+<ul>
+<li><strong>Cross-layer exploitation</strong>: Moving from high-level Java/Kotlin to low-level native code exploitation</li>
+<li><strong>Android&rsquo;s security model</strong>: Understanding how application sandboxing, permissions, and process isolation work (and their limitations)</li>
+<li><strong>Modern exploitation techniques</strong>: Bypassing stack canaries and ASLR in a constrained environment</li>
+<li><strong>Creative information disclosure</strong>: Using <code>/proc</code> filesystem as an information leak oracle</li>
+<li><strong>Intent-based attack vectors</strong>: Weaponizing Android&rsquo;s IPC mechanisms for privilege escalation</li>
+</ul>
+<h2 id="challenge-reception">Challenge Reception</h2>
+<p>The challenge proved to be quite difficult, with only a handful of teams solving it during the CTF. The combination of Android-specific knowledge and traditional binary exploitation skills created a high barrier to entry, which was exactly the goal.</p>
+<p>You can read Nikolaos Chalkiadakis&rsquo;s <a href="https://chalkiadakis.me/posts/insomnihack-teaser24/cryptonotes/">detailed writeup here</a>, which provides a comprehensive walkthrough of the exploitation process, including full <a href="https://github.com/nikosChalk/ctf-writeups/tree/master/insomnihack2024/CryptoNotes/solution/MaliciousApp">exploit code</a>.</p>
+<p>And for sure, you can also give a try to <a href="https://2dai.github.io/files/cryptonotes.apk">the challenge</a>.</p>
+
+                <br>
+                
+                <p class="back-to-posts"><a href="https://2dai.github.io/blog">Retour aux articles</a></p>
+            </div>
+            <br>
+            <div class="disqus">
+                
+            </div>
+            
+        </div>
+    </div>
+</section>
+
+
+
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.11.0/highlight.min.js"></script>
+  
+
+  <script type="text/javascript">
+    hljs.initHighlightingOnLoad();
+  </script>
+
+
+
+
+
+</body>
+</html>
+
